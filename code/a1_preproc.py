@@ -7,20 +7,21 @@ import html
 import string
 import spacy
 
-# indir = '/u/cs401/A1/data/';
-indir = '../data/'
-# indir = '/u/cs401/A1/wordlists/';
-listdir = '../wordlists/'
+indir_1000292033 = '/u/cs401/A1/data/'
+listdir_1000292033 = '/u/cs401/A1/wordlists/'
+
+# indir_1000292033 = '../data/'
+# listdir_1000292033 = '../wordlists/'
 
 punctuation_re = r'[' + string.punctuation + ']*|\w*'
 
-abbrev_list_1000292033 = open(listdir + 'abbrev.english').read().splitlines()
+abbrev_list_1000292033 = open(listdir_1000292033 + 'abbrev.english').read().splitlines()
 abbrev_list_space_1000292033 = list(map(lambda x: x.replace('.', ' .'), abbrev_list_1000292033))
 
-clitic_list_1000292033 = open(listdir + 'clitics').read().splitlines()
+clitic_list_1000292033 = open(listdir_1000292033 + 'clitics').read().splitlines()
 clitic_list_space_1000292033 = list(map(lambda x: x.replace('\'', ' \' '), clitic_list_1000292033))
 
-stop_list_1000292033 = open(listdir + 'stopWords').read().splitlines()
+stop_list_1000292033 = open(listdir_1000292033 + 'stopWords').read().splitlines()
 
 nlp = spacy.load('en', disable=['parser', 'ner'])
 
@@ -35,7 +36,7 @@ def preproc1(comment, steps=range(1, 11)):
     Returns:
         modComm : string, the modified comment 
     '''
-    #set the modComm
+    # set the modComm
     modComm = comment
     if 1 in steps:
         # remove new line
@@ -105,7 +106,7 @@ def preproc1(comment, steps=range(1, 11)):
 
 def main(args):
     allOutput = []
-    for subdir, dirs, files in os.walk(indir):
+    for subdir, dirs, files in os.walk(indir_1000292033):
         for file in files:
             fullFile = os.path.join(subdir, file)
 
