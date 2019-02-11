@@ -1,36 +1,38 @@
 import numpy as np
-import sys
 import argparse
-import os
 import json
 import re
 import string
-import spacy
 import csv
 
-listdir = '../wordlists/'
-featsdir = '../feats/'
 
-first_person_list = open(listdir + 'First-person').read().splitlines()
-second_person_list = open(listdir + 'Second-person').read().splitlines()
-third_person_list = open(listdir + 'Third-person').read().splitlines()
-slang_list = open(listdir + 'Slang').read().splitlines()
+featsdir_1000292033 = '/u/cs401/A1/feats/'
+listdir_1000292033 = '/u/cs401/Wordlists/'
 
-nlp = spacy.load('en', disable=['parser', 'ner'])
+# listdir_1000292033 = '../wordlists/'
+# featsdir_1000292033 = '../feats/'
 
-bgl_list = {}
-bgl_data = csv.reader(open(listdir + 'BristolNorms+GilhoolyLogie.csv'), delimiter=',')
-next(bgl_data)
 
-for row in bgl_data:
-    bgl_list[row[1]] = row
+# preload the files
+first_person_list_1000292033 = open(listdir_1000292033 + 'First-person').read().splitlines()
+second_person_list_1000292033 = open(listdir_1000292033 + 'Second-person').read().splitlines()
+third_person_list_1000292033 = open(listdir_1000292033 + 'Third-person').read().splitlines()
+slang_list_1000292033 = open(listdir_1000292033 + 'Slang').read().splitlines()
 
-ra_list = {}
-ra_data = csv.reader(open(listdir + 'Ratings_Warriner_et_al.csv'), delimiter=',')
-next(ra_data)
 
-for row in ra_data:
-    ra_list[row[1]] = row
+bgl_list_1000292033 = {}
+bgl_data_1000292033 = csv.reader(open(listdir_1000292033 + 'BristolNorms+GilhoolyLogie.csv'), delimiter=',')
+next(bgl_data_1000292033)
+
+for row in bgl_data_1000292033:
+    bgl_list_1000292033[row[1]] = row
+
+ra_list_1000292033 = {}
+ra_data_1000292033 = csv.reader(open(listdir_1000292033 + 'Ratings_Warriner_et_al.csv'), delimiter=',')
+next(ra_data_1000292033)
+
+for row in ra_data_1000292033:
+    ra_list_1000292033[row[1]] = row
 
 
 def extract1(comment):
@@ -43,20 +45,27 @@ def extract1(comment):
         feats : numpy Array, a 173-length vector of floating point features (only the first 29 are expected to be filled, here)
     '''
 
+    # set placeholder
     features = np.zeros(173)
+    # remove extra space
     comment = ' '.join(comment.split())
+    # add a leading space for corner cases
     comment = ' ' + comment
-    for first_person in first_person_list:
+
+    for first_person in first_person_list_1000292033:
         features[0] = features[0] + comment.count(' ' + first_person.lower() + '/')
-    for second_person in second_person_list:
+    for second_person in second_person_list_1000292033:
         features[1] = features[1] + comment.count(' ' + second_person.lower() + '/')
-    for third_person in third_person_list:
+    for third_person in third_person_list_1000292033:
         features[2] = features[2] + comment.count(' ' + third_person.lower() + '/')
 
     features[3] = comment.count('/CC ')
     features[4] = comment.count('/VBD ')
     features[5] = len(re.findall("'ll|will|gonna|(going/VBG\sto/TO\s\w*/VB)", comment))
     features[6] = comment.count(' ,')
+    # two cases.
+    # one, the punctuations are already splits, e.g.  !?! => !/. ?/. !/.
+    # two, the punctuations are in normal, e.g. ...
     features[7] = len(
         re.findall("(\s[" + string.punctuation + "]/[.])(\s[" + string.punctuation + "]/[.]+)+", comment)) + len(
         re.findall("\s[" + string.punctuation + "][" + string.punctuation + "]+/", comment))
@@ -65,10 +74,10 @@ def extract1(comment):
     features[10] = comment.count('/RB ')
     features[11] = comment.count('/WP ') + comment.count('/WP$ ') + comment.count('/WRB ')
 
-    for slang in slang_list:
+    for slang in slang_list_1000292033:
         features[12] = features[12] + comment.count(' ' + slang.lower() + '/')
 
-    features[13] = len(re.findall("\s[A-Z][A-Z]+/", comment))
+    features[13] = len(re.findall("\s[A-Z][A-Z][A-Z]+/", comment))
     features[14] = np.mean(list(map(lambda sentence: len(sentence.strip().split()), comment.split('\n'))))
 
     token_list = re.sub("\s[" + string.punctuation + "]*/.\s", " ", comment).split()
@@ -90,21 +99,21 @@ def extract1(comment):
     ams_list = []
     dms_list = []
 
-
+    # extract data from the files data
     for token in token_list:
         token_info = token.rsplit('/', 1)[0]
-        if token_info != '' and token_info in bgl_list:
-            aoa_list.append(float(bgl_list[token_info][3]))
-            img_list.append(float(bgl_list[token_info][4]))
-            fam_list.append(float(bgl_list[token_info][5]))
+        if token_info != '' and token_info in bgl_list_1000292033:
+            aoa_list.append(float(bgl_list_1000292033[token_info][3]))
+            img_list.append(float(bgl_list_1000292033[token_info][4]))
+            fam_list.append(float(bgl_list_1000292033[token_info][5]))
         else:
             aoa_list.append(0.0)
             img_list.append(0.0)
             fam_list.append(0.0)
-        if token_info != '' and token_info in ra_list:
-            vms_list.append(float(ra_list[token_info][2]))
-            ams_list.append(float(ra_list[token_info][5]))
-            dms_list.append(float(ra_list[token_info][8]))
+        if token_info != '' and token_info in ra_list_1000292033:
+            vms_list.append(float(ra_list_1000292033[token_info][2]))
+            ams_list.append(float(ra_list_1000292033[token_info][5]))
+            dms_list.append(float(ra_list_1000292033[token_info][8]))
         else:
             vms_list.append(0.0)
             ams_list.append(0.0)
@@ -130,10 +139,10 @@ def extract1(comment):
 
 
 def extract2(id, cat):
-    ids = open(featsdir + cat + '_IDs.txt').read().splitlines()
+    ids = open(featsdir_1000292033 + cat + '_IDs.txt').read().splitlines()
     for i in range(len(ids)):
         if id == ids[i]:
-            cat_feats = np.load(featsdir + cat + '_feats.dat.npy')
+            cat_feats = np.load(featsdir_1000292033 + cat + '_feats.dat.npy')
             return cat_feats[i]
 
     return np.zeros(144)
