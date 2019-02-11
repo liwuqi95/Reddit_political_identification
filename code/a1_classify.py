@@ -4,15 +4,15 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import KFold
 from sklearn.base import clone
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_classif
 import numpy as np
 import argparse
 import csv
-import sys
-import os
 import random
+from scipy import stats
 
 
 def accuracy(C):
@@ -175,10 +175,10 @@ def class33(X_train, X_test, y_train, y_test, i, X_1k, y_1k):
             list.extend(pp[selector.get_support()])
             part3_feature_list_1000292033.append(list)
 
-        #train data for part3.2
+        # train data for part3.2
 
         if k is 5:
-            classifier = classifiers[i]
+            classifier = clone(classifiers[i])
             classifier.fit(X_1k, y_1k)
             prediction = classifier.predict(X_test)
             c_m = confusion_matrix(y_test, prediction)
@@ -186,7 +186,7 @@ def class33(X_train, X_test, y_train, y_test, i, X_1k, y_1k):
 
             # adding the 32k data size at the end
             if len(part3_accuracy_list_1000292033) is 5:
-                classifier = classifiers[i]
+                classifier = clone(classifiers[i])
                 classifier.fit(X_train, y_train)
                 prediction = classifier.predict(X_test)
                 c_m = confusion_matrix(y_test, prediction)
@@ -200,7 +200,64 @@ def class34(filename, i):
        filename : string, the name of the npz file from Task 2
        i: int, the index of the supposed best classifier (from task 3.1)  
         '''
-    print('TODO Section 3.4')
+    i = i - 1
+    data = np.load(filename)["arr_0"]
+
+    X = []
+    y = []
+
+    for d in data:
+        X.append(d[0:173])
+        y.append(d[173])
+
+    X = np.array(X)
+    y = np.array(y)
+
+    classifiers = [SVC(kernel='linear', max_iter=1000),
+                   SVC(gamma=2, max_iter=1000),
+                   RandomForestClassifier(max_depth=5, n_estimators=10),
+                   MLPClassifier(alpha=0.05),
+                   AdaBoostClassifier()]
+
+    kf = KFold(n_splits=5, shuffle=True)
+
+    # global list to store result
+    fold_test_result_list = []
+    p_values = []
+
+    for train_index, test_index in kf.split(X):
+        X_train, X_test = X[train_index], X[test_index]
+        y_train, y_test = y[train_index], y[test_index]
+
+        accuracy_list = []
+        for clf in classifiers:
+            classifier = clone(clf)
+
+            classifier.fit(X_train, y_train)
+            prediction = classifier.predict(X_test)
+            c_m = confusion_matrix(y_test, prediction)
+            accuracy_list.append(accuracy(c_m))
+
+        fold_test_result_list.append(accuracy_list)
+
+    vertical_result = np.transpose(fold_test_result_list)
+
+    # compare the result with the best classifier
+    for j in range(len(classifiers)):
+        if i != j:
+            S = stats.ttest_rel(vertical_result[i], vertical_result[j])
+            p_values.append(S[1])
+
+    with open('a1_3.4.csv', 'w', newline='') as csvfile:
+        spamwriter = csv.writer(csvfile, delimiter=',')
+        for result in fold_test_result_list:
+            spamwriter.writerow(result)
+        spamwriter.writerow(p_values)
+
+        spamwriter.writerow(["The accuracy of the cross-validation's result may lead different result as part3.1 "+
+                             "It could be caused by the variance of the data. In the 3.1, there are only one set of training"
+                             " and testing data. The form of the trianing set may lead to bias."])
+
 
 
 if __name__ == "__main__":
@@ -246,8 +303,6 @@ if __name__ == "__main__":
         spamwriter.writerow(["p values are Lower with more data. With more data, we are more sure about the importance"
                              " of the features we have."])
 
+    ##### part4
 
-
-
-
-
+    class34(args.input, iBest)
