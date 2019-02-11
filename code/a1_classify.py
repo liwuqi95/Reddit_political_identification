@@ -300,8 +300,9 @@ if __name__ == "__main__":
                              "It may caused by that the LIWC are more close to the content of the words."])
         spamwriter.writerow(["p values are Lower with more data. With more data, we are more sure about the importance"
                              " of the features we have."])
-        spamwriter.writerow(["p values are Lower with more data. With more data, we are more sure about the importance"
-                             " of the features we have."])
+        spamwriter.writerow(["Number of adverbs, Number of proper nouns and LIWC features. "
+                             "Those may affect the power of the sentences. "
+                             "And affect the comment category. "])
 
     ##### part4
 
