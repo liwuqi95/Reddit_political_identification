@@ -8,7 +8,7 @@ import string
 import spacy
 
 indir_1000292033 = '/u/cs401/A1/data/'
-listdir_1000292033 = '/u/cs401/A1/Wordlists/'
+listdir_1000292033 = '/u/cs401/Wordlists/'
 
 # indir_1000292033 = '../data/'
 # listdir_1000292033 = '../wordlists/'
