@@ -2,9 +2,26 @@ import sys
 import argparse
 import os
 import json
+import re
+import html
+import string
+import spacy
 
 # indir = '/u/cs401/A1/data/';
-indir = '../data/';
+indir = '../data/'
+listdir = '../wordlists/'
+
+punctuation_re = r'[' + string.punctuation + ']*|\w*'
+
+abbrev_list_1000292033 = open(listdir + 'abbrev.english').read().splitlines()
+abbrev_list_space_1000292033 = list(map(lambda x: x.replace('.', ' .'), abbrev_list_1000292033))
+
+clitic_list_1000292033 = open(listdir + 'clitics').read().splitlines()
+clitic_list_space_1000292033 = list(map(lambda x: x.replace('\'', ' \' '), clitic_list_1000292033))
+
+stop_list_1000292033 = open(listdir + 'stopWords').read().splitlines()
+
+nlp = spacy.load('en', disable=['parser', 'ner'])
 
 
 def preproc1(comment, steps=range(1, 11)):
@@ -17,29 +34,53 @@ def preproc1(comment, steps=range(1, 11)):
     Returns:
         modComm : string, the modified comment 
     '''
-
-    modComm = ''
+    modComm = comment
     if 1 in steps:
-        print('TODO')
+        modComm = comment.replace('\n', ' ')
     if 2 in steps:
-        print('TODO')
+        modComm = html.unescape(modComm)
     if 3 in steps:
-        print('TODO')
+        modComm = re.sub("(http|www).*\s", " ", modComm)
     if 4 in steps:
-        print('TODO')
+        modComm = re.sub(r"([" + string.punctuation + "]+)", r" \1 ", modComm)
+        modComm = modComm.replace(" ...", "...")
+        for i in range(len(abbrev_list_space_1000292033)):
+            modComm = modComm.replace(abbrev_list_space_1000292033[i], abbrev_list_1000292033[i])
     if 5 in steps:
-        print('TODO')
+        for i in range(len(clitic_list_1000292033)):
+            modComm = modComm.replace(clitic_list_space_1000292033[i], clitic_list_1000292033[i])
+            modComm = modComm.replace(clitic_list_1000292033[i], ' ' + clitic_list_1000292033[i] + ' ')
     if 6 in steps:
-        print('TODO')
-    if 7 in steps:
-        print('TODO')
-    if 8 in steps:
-        print('TODO')
-    if 9 in steps:
-        print('TODO')
-    if 10 in steps:
-        print('TODO')
+        modComm = ' '.join(modComm.split())
+        utt = nlp(modComm)
+        token_list = []
 
+        for token in utt:
+            token_list.append(token.text + '/' + token.tag_)
+        modComm = ' '.join(token_list)
+    if 7 in steps:
+        for stop_word in stop_list_1000292033:
+            modComm = re.sub("\s" + stop_word + "/\w*\s", " ", modComm)
+    if 8 in steps:
+        for token in utt:
+            if token.text != token.lemma_:
+                if not (token.lemma_.startswith('-') and not token.text.startswith('-')):
+                    modComm = modComm.replace(token.text, token.lemma_)
+    if 9 in steps:
+        modComm = re.sub(r"([!?.]/[.]\s)(\w)", r"\1 \n \2", modComm)
+    if 10 in steps:
+        token_list = modComm.split(" ")
+
+        for i in range(len(token_list)):
+            token_info = token_list[i].rsplit('/', 1)
+            if len(token_info) > 1:
+                token_list[i] = token_info[0].lower() + '/' + token_info[1]
+            else:
+                token_list[i] = token_list[i].lower()
+
+        modComm = " ".join(token_list)
+
+    modComm = re.sub(r" +", " ", modComm)
     return modComm
 
 
@@ -48,15 +89,18 @@ def main(args):
     for subdir, dirs, files in os.walk(indir):
         for file in files:
             fullFile = os.path.join(subdir, file)
-            print("Processing " + fullFile)
 
             data = json.load(open(fullFile))
 
-            for i in range(min(args.max, len(data))):
-                j = json.loads(data[i])
-                line = {"id":j["id"], "cat": file, 'body': preproc1(j["body"])}
-                allOutput.append(line)
+            count = args.max
+            i = args.ID[0] % len(data)
 
+            while count > 0:
+                j = json.loads(data[i])
+                line = {"id": j["id"], "cat": file, 'body': preproc1(j["body"])}
+                allOutput.append(line)
+                i = i + 1 if i < len(data) - 1 else 0
+                count = count - 1
 
             # TODO: select appropriate args.max lines
             # TODO: read those lines with something like `j = json.loads(line)`
