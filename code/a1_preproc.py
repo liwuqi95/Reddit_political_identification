@@ -13,7 +13,6 @@ listdir_1000292033 = '/u/cs401/A1/wordlists/'
 # indir_1000292033 = '../data/'
 # listdir_1000292033 = '../wordlists/'
 
-punctuation_re = r'[' + string.punctuation + ']*|\w*'
 
 abbrev_list_1000292033 = open(listdir_1000292033 + 'abbrev.english').read().splitlines()
 abbrev_list_space_1000292033 = list(map(lambda x: x.replace('.', ' .'), abbrev_list_1000292033))
