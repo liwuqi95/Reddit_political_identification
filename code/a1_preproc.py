@@ -20,7 +20,7 @@ abbrev_list_space_1000292033 = list(map(lambda x: x.replace('.', ' .'), abbrev_l
 clitic_list_1000292033 = open(listdir_1000292033 + 'clitics').read().splitlines()
 clitic_list_space_1000292033 = list(map(lambda x: x.replace('\'', ' \' '), clitic_list_1000292033))
 
-stop_list_1000292033 = open(listdir_1000292033 + 'stopWords').read().splitlines()
+stop_list_1000292033 = open(listdir_1000292033 + 'StopWords').read().splitlines()
 
 nlp = spacy.load('en', disable=['parser', 'ner'])
 
