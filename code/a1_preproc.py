@@ -6,13 +6,13 @@ import re
 import html
 import string
 import spacy
+import time
 
 indir_1000292033 = '/u/cs401/A1/data/'
 listdir_1000292033 = '/u/cs401/Wordlists/'
 
 # indir_1000292033 = '../data/'
 # listdir_1000292033 = '../wordlists/'
-
 
 abbrev_list_1000292033 = open(listdir_1000292033 + 'abbrev.english').read().splitlines()
 abbrev_list_space_1000292033 = list(map(lambda x: x.replace('.', ' .'), abbrev_list_1000292033))
@@ -53,7 +53,7 @@ def preproc1(comment, steps=range(1, 11)):
         modComm = modComm.replace(" ...", "...")
         # set abbreviations back normal
         for i in range(len(abbrev_list_space_1000292033)):
-            modComm = modComm.replace(abbrev_list_space_1000292033[i], abbrev_list_1000292033[i])
+            modComm = re.sub(abbrev_list_space_1000292033[i], abbrev_list_1000292033[i], modComm)
     if 5 in steps:
         # consider two cases.
         # 1. the punctuations are already splited with a space
@@ -80,7 +80,7 @@ def preproc1(comment, steps=range(1, 11)):
         for token in utt:
             if token.text != token.lemma_:
                 if not (token.lemma_.startswith('-') and not token.text.startswith('-')):
-                    modComm = modComm.replace(token.text, token.lemma_)
+                    modComm = re.sub(token.text, token.lemma_, modComm)
     if 9 in steps:
         # insert new line after group of !?.
         modComm = re.sub(r"([!?.]/[.]\s)(\w)", r"\1 \n \2", modComm)
@@ -105,11 +105,13 @@ def preproc1(comment, steps=range(1, 11)):
 
 def main(args):
     allOutput = []
+
     for subdir, dirs, files in os.walk(indir_1000292033):
         for file in files:
             fullFile = os.path.join(subdir, file)
 
             data = json.load(open(fullFile))
+            start_time = time.time()
 
             count = args.max
             # set index with student number
@@ -122,6 +124,8 @@ def main(args):
                 # circular index
                 i = i + 1 if i < len(data) - 1 else 0
                 count = count - 1
+            # printing test stamp for efficiency purpose
+            print(file + ' finished in ' + str(time.time() - start_time))
 
     fout = open(args.output, 'w')
     fout.write(json.dumps(allOutput))

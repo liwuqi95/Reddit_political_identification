@@ -5,20 +5,17 @@ import re
 import string
 import csv
 
-
 featsdir_1000292033 = '/u/cs401/A1/feats/'
 listdir_1000292033 = '/u/cs401/Wordlists/'
 
 # listdir_1000292033 = '../wordlists/'
 # featsdir_1000292033 = '../feats/'
 
-
 # preload the files
 first_person_list_1000292033 = open(listdir_1000292033 + 'First-person').read().splitlines()
 second_person_list_1000292033 = open(listdir_1000292033 + 'Second-person').read().splitlines()
 third_person_list_1000292033 = open(listdir_1000292033 + 'Third-person').read().splitlines()
 slang_list_1000292033 = open(listdir_1000292033 + 'Slang').read().splitlines()
-
 
 bgl_list_1000292033 = {}
 bgl_data_1000292033 = csv.reader(open(listdir_1000292033 + 'BristolNorms+GilhoolyLogie.csv'), delimiter=',')
@@ -85,7 +82,7 @@ def extract1(comment):
     length = 0
     for i in range(len(token_list)):
         length += len((token_list[i].rsplit('/', 1))[0])
-    features[15] = length / len(token_list)
+    features[15] = (length / len(token_list)) if len(token_list) > 0 else 0
 
     features[16] = len(comment.split('\n'))
 
